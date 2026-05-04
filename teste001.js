@@ -100,7 +100,7 @@ function getParenthesisToAdd() {
 
     if (openCount > closeCount && lastChar !== Parenthesis.open) {
         return Parenthesis.close
-    }else if (lastChar == parentesis.close || isNumericCharacter(lastChar)) {
+    }else if (lastChar == Parenthesis.close || isNumericCharacter(lastChar)) {
         return "*" + Parenthesis.open
     }
 
