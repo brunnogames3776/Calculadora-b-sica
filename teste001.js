@@ -33,7 +33,12 @@ const Parenthesis = {
 }
 
 let currentExpression = ''
+
 let debounce = false
+let warnCounter = 0
+const warnLimit = 10
+let warnDecayTimer = null
+const warnDecayInterval = 2000
 
 const errorLabel = document.getElementById('error')
 const resultLabel = document.getElementById('result')
@@ -95,6 +100,8 @@ function getParenthesisToAdd() {
 
     if (openCount > closeCount && lastChar !== Parenthesis.open) {
         return Parenthesis.close
+    }else if (lastChar == parentesis.close || isNumericCharacter(lastChar)) {
+        return "*" + Parenthesis.open
     }
 
     return Parenthesis.open
@@ -215,11 +222,42 @@ function setDebounce() {
     debounce = true
     setTimeout(() => {
         debounce = false
-    }, 20)
+    }, 50)
+}
+
+function showWarning(message) {
+    warnCounter = Math.min(warnLimit, warnCounter + 1)
+    console.warn(`Warning ${warnCounter}/${warnLimit}: ${message}`)
+
+    if (!warnDecayTimer) {
+        warnDecayTimer = setInterval(() => {
+            if (warnCounter > 0) {
+                warnCounter--
+                console.warn(`Warning cooldown: ${warnCounter}/${warnLimit}`)
+                if (warnCounter === 0) {
+                    clearInterval(warnDecayTimer)
+                    warnDecayTimer = null
+                }
+            } else {
+                clearInterval(warnDecayTimer)
+                warnDecayTimer = null
+            }
+        }, warnDecayInterval)
+    }
 }
 
 function handleButtonClick(buttonId) {
     if (debounce) {
+        showError('You are clicking too fast!')
+        showWarning('User is clicking too fast.')
+        if (warnCounter >= warnLimit) {
+            window.alert('You have been warned multiple times. The page will reload to prevent abuse.')
+            showError('Please slow down!')
+            setTimeout(() => {
+                window.location.reload()
+            }, 500)
+            warnCounter = 0
+        }
         return
     }
 
